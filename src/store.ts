@@ -65,7 +65,9 @@ export const useFilters = create<FilterState>()(
       theme: 'system',
 
       init: (defaults, normalise) => {
-        const start = normalise({ ...defaults, ...(readFiltersFromUrl() ?? get().applied ?? {}) });
+        const saved: Partial<ReportFilters> = readFiltersFromUrl() ?? get().applied ?? {};
+        // The month fallback covers filters saved (or defaults cached) before the month filter existed.
+        const start = normalise({ ...defaults, ...saved, month: saved.month ?? defaults.month ?? '' });
         set({ draft: start, applied: start });
       },
       setDraft: (patch) => set((s) => (s.draft ? { draft: { ...s.draft, ...patch } } : s)),

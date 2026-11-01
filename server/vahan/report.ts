@@ -6,6 +6,7 @@ import { readFirstSheet } from './xlsx.js';
 
 const MAIN_RENDER = 'VhCatg norms fuel VhClass combTablePnl groupingTable msg vhCatgPnl';
 const TABLE_GROUP = 'vchgroupTable:selectCatgGrp';
+const MONTH = 'groupingTable:selectMonth';
 export const MULTI_YEAR_AXES = ['Financial Year', 'Calendar Year'];
 const MONTH_WISE = 'Month Wise';
 
@@ -33,6 +34,7 @@ export async function fetchMeta(): Promise<Meta> {
     yearType: yearType.selected,
     year: year.selected,
     years: [],
+    month: '',
     tableGroup: '',
     checks: {},
   };
@@ -146,8 +148,17 @@ export async function fetchReport(f: ReportFilters): Promise<Omit<ReportResult, 
     }
   }
 
-  // Refinements: keep only values the page currently offers, then use the side-panel refresh.
+  // The refinement lists come from the refresh (or vehicle-group) response.
   const checkGroups: CheckGroup[] = readCheckGroups(fragment);
+
+  // Calendar-year tables offer a month picker in their header: YYYYMM, or the year itself for all months.
+  const months = table.id === 'groupingTable' ? (readSelect(fragment, `${MONTH}_input`)?.options ?? []) : [];
+  if (f.month && months.length) {
+    const res = await choose(s, MONTH, f.month, 'combTablePnl', 'Month', fragment);
+    if (res) table = readTable([...res.updates.values()].join('\n')) ?? table;
+  }
+
+  // Refinements: keep only values the page currently offers, then use the side-panel refresh.
   const appliedChecks: Record<string, string[]> = {};
   for (const g of checkGroups) {
     const offered = new Set(g.options.map((o) => o.value));
@@ -170,6 +181,8 @@ export async function fetchReport(f: ReportFilters): Promise<Omit<ReportResult, 
     rows,
     tableGroups,
     tableGroup: String(s.get(`${TABLE_GROUP}_input`) ?? ''),
+    months,
+    month: months.length && s.get(`${MONTH}_input`) !== months[0].value ? String(s.get(`${MONTH}_input`)) : '',
     checkGroups,
     appliedChecks,
     fetchedAt: new Date().toISOString(),

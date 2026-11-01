@@ -49,6 +49,7 @@ with your last report; **Copy link** puts the filters in the URL.
 | State, RTO | Sidebar → Location (searchable) |
 | Y-Axis, X-Axis | Sidebar → Rows, Columns |
 | Year Type, Year / multi-year list | Sidebar → Period |
+| Month picker in the table header (single calendar year) | Sidebar → Period → Month |
 | Vehicle Category, Norms, Fuels, Vehicle Class checkboxes | Sidebar → Refine (multi-select dropdowns) |
 | Vehicle-group dropdown in the table header | Group picker next to the search box |
 | Excel export | CSV export |

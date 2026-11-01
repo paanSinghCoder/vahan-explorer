@@ -22,6 +22,8 @@ export interface ReportFilters {
   year: string;
   /** Used instead of yearType/year when the X axis is Financial Year or Calendar Year. */
   years: string[];
+  /** One month of a calendar year as YYYYMM; '' means the whole year. */
+  month: string;
   /** Vehicle Category Group shown by the table; '' keeps the page default. */
   tableGroup: string;
   checks: Record<string, string[]>;
@@ -73,6 +75,9 @@ export interface ReportResult {
   rows: ReportRow[];
   tableGroups: Option[];
   tableGroup: string;
+  /** Month choices offered for this report (calendar years only); the first is the whole year. */
+  months: Option[];
+  month: string;
   checkGroups: CheckGroup[];
   appliedChecks: Record<string, string[]>;
   fetchedAt: string;

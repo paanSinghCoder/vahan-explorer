@@ -75,7 +75,12 @@ export default function App() {
 
   const filters = () =>
     meta.data ? (
-      <FilterSidebar meta={meta.data} checkGroups={report.data?.checkGroups ?? meta.data.checkGroups} running={report.isFetching} />
+      <FilterSidebar
+        meta={meta.data}
+        checkGroups={report.data?.checkGroups ?? meta.data.checkGroups}
+        months={report.data?.months ?? []}
+        running={report.isFetching}
+      />
     ) : (
       <div className="space-y-3 p-4 pt-16">
         {[0, 1, 2, 3, 4].map((i) => (

@@ -30,7 +30,9 @@ function describeTitle(raw: string) {
   const title = tidyTitle(raw).replace(/\bRto\b/g, 'RTO');
   const m = title.match(/^(.+?) Wise (.+?) Data (?:of (.+?)|For All State)\s*(?:\((.*)\))?$/);
   if (!m) return { main: title, detail: '' };
-  return { main: `${m[1]} × ${m[2]}`, detail: [m[3] ?? 'All states', m[4]?.trim()].filter(Boolean).join(' · ') };
+  // A month shows as "(JAN,2025)"; tidy it to "Jan 2025".
+  const period = m[4]?.trim().replace(/^([A-Z])([A-Z]{2}),\s*(\d{4})$/, (_, a: string, b: string, y: string) => `${a}${b.toLowerCase()} ${y}`);
+  return { main: `${m[1]} × ${m[2]}`, detail: [m[3] ?? 'All states', period].filter(Boolean).join(' · ') };
 }
 
 const COLUMN_HEADLINE: Record<string, string> = { 'Month Wise': 'Peak month', 'Calendar Year': 'Top year', 'Financial Year': 'Top year' };

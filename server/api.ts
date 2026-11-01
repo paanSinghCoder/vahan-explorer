@@ -37,6 +37,7 @@ function normaliseFilters(f: Partial<ReportFilters>): ReportFilters {
     yearType: str(f.yearType),
     year: str(f.year),
     years: Array.isArray(f.years) ? f.years.map(String).sort() : [],
+    month: str(f.month),
     tableGroup: str(f.tableGroup),
     checks,
   };

@@ -1,11 +1,13 @@
 import { Github, RotateCcw } from 'lucide-react';
 import type { ReactNode } from 'react';
-import type { CheckGroup, Meta } from '../../shared/types';
+import type { CheckGroup, Meta, Option } from '../../shared/types';
 import { useStateDetail } from '../api';
 import {
   ALL,
   axisLabel,
   isMultiYear,
+  monthApplies,
+  monthOptions,
   multiYearOptions,
   normalise,
   rtoLabel,
@@ -50,11 +52,13 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
 interface Props {
   meta: Meta;
   checkGroups: CheckGroup[];
+  /** Month choices from the latest report. */
+  months: Option[];
   running: boolean;
 }
 
 /** Report filters. Changes apply automatically (see useFilterSync). */
-export function FilterSidebar({ meta, checkGroups, running }: Props) {
+export function FilterSidebar({ meta, checkGroups, months, running }: Props) {
   const { draft, applied, setDraft, replaceDraft } = useFilters();
   const detailQuery = useStateDetail(draft?.state);
   const detail = draft && draft.state !== ALL ? detailQuery.data : undefined;
@@ -143,11 +147,16 @@ export function FilterSidebar({ meta, checkGroups, running }: Props) {
                 label="Year type"
                 value={draft.yearType}
                 options={meta.yearTypes.map((t) => ({ value: t.value, label: t.label.replace(' Year', '') }))}
-                onChange={(yearType) => setDraft({ yearType })}
+                onChange={(yearType) => setDraft({ yearType, month: '' })}
               />
               <Field label="Year" htmlFor="filter-year">
-                <Combobox id="filter-year" options={yearOptions(meta, draft)} value={draft.year} format={yearLabel} onChange={(year) => setDraft({ year })} />
+                <Combobox id="filter-year" options={yearOptions(meta, draft)} value={draft.year} format={yearLabel} onChange={(year) => setDraft({ year, month: '' })} />
               </Field>
+              {monthApplies(draft) && (
+                <Field label="Month" htmlFor="filter-month">
+                  <Combobox id="filter-month" options={monthOptions(months, draft)} value={draft.month} searchable={false} onChange={(month) => setDraft({ month })} />
+                </Field>
+              )}
             </>
           )}
         </Group>

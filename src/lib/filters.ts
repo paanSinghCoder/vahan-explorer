@@ -9,6 +9,10 @@ const MULTI_YEAR_AXES = ['Financial Year', 'Calendar Year'];
 
 export const isMultiYear = (xAxis: string) => MULTI_YEAR_AXES.includes(xAxis);
 
+/** The page offers a month only for one calendar year, in the regular (non-VCG, non-monthly) table. */
+export const monthApplies = (f: ReportFilters) =>
+  f.yearType === 'C' && f.year !== 'A' && !isMultiYear(f.xAxis) && f.xAxis !== VCG && f.xAxis !== MONTH_WISE;
+
 export function yAxisOptions(meta: Meta, detail: StateDetail | undefined, f: ReportFilters): Option[] {
   const base = meta.yAxis.filter((o) => o.value !== 'State');
   if (f.state === ALL) return meta.yAxis;
@@ -56,6 +60,7 @@ export function normalise(meta: Meta, detail: StateDetail | undefined, f: Report
     next.year = pick(yearOptions(meta, next), next.year, meta.defaults.year);
   }
   if (next.xAxis !== VCG) next.tableGroup = '';
+  if (!monthApplies(next)) next.month = '';
   return next;
 }
 
@@ -81,3 +86,15 @@ export function axisLabel(o: Option): string {
 }
 
 export const yearLabel = (o: Option) => (o.value === 'A' ? 'Till today' : o.label);
+
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/** "202501" -> "Jan 2025". */
+export const monthLabel = (value: string) => `${MONTHS[Number(value.slice(4, 6)) - 1] ?? value.slice(4, 6)} ${value.slice(0, 4)}`;
+
+/** Month choices for the draft's year, from the latest report (its first option is the whole year). */
+export function monthOptions(months: Option[], f: ReportFilters): Option[] {
+  const offered = months[0]?.value === f.year ? months.slice(1).map((o) => o.value) : [];
+  if (f.month && !offered.includes(f.month)) offered.push(f.month);
+  return [{ value: '', label: 'All months' }, ...offered.map((value) => ({ value, label: monthLabel(value) }))];
+}
