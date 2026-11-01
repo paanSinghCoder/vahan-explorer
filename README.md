@@ -39,6 +39,7 @@ locally and by the functions in `api/` on Vercel):
 The client (`src/`) is React 19 + TypeScript + Tailwind v4 + TanStack Query + Zustand, with
 shadcn/ui-style components on Radix UI and cmdk (`src/components/ui/`). The filter sidebar
 collapses with the top-left button or ⌘/Ctrl+B and becomes a sheet on small screens.
+The top-right toggle switches between light, dark and system themes.
 Applied filters and display preferences are saved in localStorage, so the page reopens
 with your last report; **Copy link** puts the filters in the URL.
 

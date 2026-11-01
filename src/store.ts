@@ -3,6 +3,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { ReportFilters } from '../shared/types';
+import type { Theme } from './theme';
 
 export type Unit = 'A' | 'T' | 'L' | 'C';
 
@@ -12,6 +13,7 @@ interface Prefs {
   heatmap: boolean;
   pageSize: number;
   sidebarOpen: boolean;
+  theme: Theme;
 }
 
 interface FilterState extends Prefs {
@@ -60,6 +62,7 @@ export const useFilters = create<FilterState>()(
       heatmap: false,
       pageSize: 50,
       sidebarOpen: true,
+      theme: 'system',
 
       init: (defaults, normalise) => {
         const start = normalise({ ...defaults, ...(readFiltersFromUrl() ?? get().applied ?? {}) });
@@ -77,8 +80,9 @@ export const useFilters = create<FilterState>()(
       setPrefs: (patch) => set(patch),
     }),
     {
+      // index.html reads state.theme from this key before first paint.
       name: 'vahan-explorer',
-      partialize: ({ applied, unit, hideEmpty, heatmap, pageSize, sidebarOpen }) => ({ applied, unit, hideEmpty, heatmap, pageSize, sidebarOpen }),
+      partialize: ({ applied, unit, hideEmpty, heatmap, pageSize, sidebarOpen, theme }) => ({ applied, unit, hideEmpty, heatmap, pageSize, sidebarOpen, theme }),
     },
   ),
 );

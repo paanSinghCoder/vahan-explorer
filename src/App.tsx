@@ -10,6 +10,7 @@ import { Sheet, TooltipProvider } from './components/ui/overlays';
 import { normalise } from './lib/filters';
 import { cn } from './lib/utils';
 import { useFilters } from './store';
+import { useApplyTheme } from './theme';
 import { useFilterSync } from './useFilterSync';
 
 const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
@@ -45,10 +46,11 @@ function LoadingState() {
 
 export default function App() {
   const meta = useMeta();
-  const { draft, applied, init, sidebarOpen, setPrefs } = useFilters();
+  const { draft, applied, init, sidebarOpen, theme, setPrefs } = useFilters();
   const report = useReport(applied);
   const [sheetOpen, setSheetOpen] = useState(false);
   useFilterSync(meta.data);
+  useApplyTheme(theme);
 
   useEffect(() => {
     if (meta.data && !draft) init(meta.data.defaults, (f) => normalise(meta.data, undefined, f));

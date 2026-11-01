@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 /* shadcn/ui-style tokens (neutral), plus one data colour for bars and the heatmap. */
 :root {
   --background: #ffffff;
@@ -22,27 +24,26 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b;
-    --foreground: #fafafa;
-    --card: #09090b;
-    --popover: #18181b;
-    --popover-foreground: #fafafa;
-    --primary: #fafafa;
-    --primary-foreground: #18181b;
-    --muted: #27272a;
-    --muted-foreground: #a1a1aa;
-    --accent: #27272a;
-    --accent-foreground: #fafafa;
-    --destructive: #f87171;
-    --border: #27272a;
-    --input: #3f3f46;
-    --ring: #52525b;
-    --sidebar: #111113;
-    --data: #2dd4bf;
-    color-scheme: dark;
-  }
+/* Dark theme: set on <html> by the switcher (and before first paint by index.html). */
+:root[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #09090b;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #18181b;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+  --accent: #27272a;
+  --accent-foreground: #fafafa;
+  --destructive: #f87171;
+  --border: #27272a;
+  --input: #3f3f46;
+  --ring: #52525b;
+  --sidebar: #111113;
+  --data: #2dd4bf;
+  color-scheme: dark;
 }
 
 @theme inline {
