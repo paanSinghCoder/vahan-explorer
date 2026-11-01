@@ -11,6 +11,7 @@ interface Prefs {
   hideEmpty: boolean;
   heatmap: boolean;
   pageSize: number;
+  sidebarOpen: boolean;
 }
 
 interface FilterState extends Prefs {
@@ -58,6 +59,7 @@ export const useFilters = create<FilterState>()(
       hideEmpty: true,
       heatmap: false,
       pageSize: 50,
+      sidebarOpen: true,
 
       init: (defaults, normalise) => {
         const start = normalise({ ...defaults, ...(readFiltersFromUrl() ?? get().applied ?? {}) });
@@ -76,7 +78,7 @@ export const useFilters = create<FilterState>()(
     }),
     {
       name: 'vahan-explorer',
-      partialize: ({ applied, unit, hideEmpty, heatmap, pageSize }) => ({ applied, unit, hideEmpty, heatmap, pageSize }),
+      partialize: ({ applied, unit, hideEmpty, heatmap, pageSize, sidebarOpen }) => ({ applied, unit, hideEmpty, heatmap, pageSize, sidebarOpen }),
     },
   ),
 );
