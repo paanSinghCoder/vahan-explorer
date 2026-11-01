@@ -10,6 +10,7 @@ import { Sheet, TooltipProvider } from './components/ui/overlays';
 import { normalise } from './lib/filters';
 import { cn } from './lib/utils';
 import { useFilters } from './store';
+import { useFilterSync } from './useFilterSync';
 
 const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
 
@@ -47,6 +48,7 @@ export default function App() {
   const { draft, applied, init, sidebarOpen, setPrefs } = useFilters();
   const report = useReport(applied);
   const [sheetOpen, setSheetOpen] = useState(false);
+  useFilterSync(meta.data);
 
   useEffect(() => {
     if (meta.data && !draft) init(meta.data.defaults, (f) => normalise(meta.data, undefined, f));
@@ -69,9 +71,9 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleSidebar]);
 
-  const filters = (onApplied?: () => void) =>
+  const filters = () =>
     meta.data ? (
-      <FilterSidebar meta={meta.data} checkGroups={report.data?.checkGroups ?? meta.data.checkGroups} running={report.isFetching} onApplied={onApplied} />
+      <FilterSidebar meta={meta.data} checkGroups={report.data?.checkGroups ?? meta.data.checkGroups} running={report.isFetching} />
     ) : (
       <div className="space-y-3 p-4 pt-16">
         {[0, 1, 2, 3, 4].map((i) => (
@@ -127,7 +129,7 @@ export default function App() {
         </aside>
 
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen} title="Filters">
-          {filters(() => setSheetOpen(false))}
+          {filters()}
         </Sheet>
 
         <div className="relative flex min-w-0 flex-1 flex-col">

@@ -28,8 +28,10 @@ export function useStateDetail(state: string | undefined) {
 export function useReport(filters: ReportFilters | null) {
   return useQuery({
     queryKey: ['report', filters],
-    queryFn: () =>
+    // The signal cancels a report request in the browser when a newer filter change replaces it.
+    queryFn: ({ signal }) =>
       getJson<ReportResult>('/api/report', {
+        signal,
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(filters),
