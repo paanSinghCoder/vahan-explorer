@@ -14,10 +14,18 @@ pnpm dev            # web on http://localhost:5173, API on :5174
 
 Production: `pnpm build && pnpm start`, then open http://localhost:5174.
 
+### Deploy to Vercel
+
+Import the repo in Vercel (framework preset: Vite); no environment variables are needed.
+The static app is served from `dist/`, and the API runs as Vercel Functions from `api/`,
+which reuse `server/api.ts`. `vercel.json` pins the functions to Mumbai (`bom1`), close to
+the VAHAN servers, and allows up to 60 s per request.
+
 ## How it works
 
 The VAHAN page is a JSF/PrimeFaces app with no public API, and it doesn't allow calls
-from other origins, so `server/` acts as a small proxy:
+from other origins, so `server/` acts as a small proxy (served by `server/index.ts`
+locally and by the functions in `api/` on Vercel):
 
 - `server/vahan/session.ts` opens a session and replays the requests the page's own
   widgets send (cookies + ViewState), in the order the page requires:
@@ -28,18 +36,20 @@ from other origins, so `server/` acts as a small proxy:
 - Results are cached in memory (reports 30 min, filter options 12 h), and at most
   two VAHAN sessions run at once.
 
-The client (`src/`) is React 19 + TypeScript + Tailwind v4 + TanStack Query + Zustand.
+The client (`src/`) is React 19 + TypeScript + Tailwind v4 + TanStack Query + Zustand, with
+shadcn/ui-style components on Radix UI and cmdk (`src/components/ui/`). The filter sidebar
+collapses with the top-left button or ⌘/Ctrl+B and becomes a sheet on small screens.
 Applied filters and display preferences are saved in localStorage, so the page reopens
 with your last report; **Copy link** puts the filters in the URL.
 
 | VAHAN page | Here |
 | --- | --- |
-| Type (Thousand / Lakh / Crore / Actual) | "Values in" switch (applied instantly) |
-| State, RTO | Location |
-| Y-Axis, X-Axis | Layout → Rows, Columns |
-| Year Type, Year / multi-year list | Period |
-| Vehicle Category, Norms, Fuels, Vehicle Class checkboxes | Refine |
-| Vehicle-group dropdown in the table header | Tabs above the table |
+| Type (Thousand / Lakh / Crore / Actual) | View menu → Values in (applied instantly) |
+| State, RTO | Sidebar → Location (searchable) |
+| Y-Axis, X-Axis | Sidebar → Rows, Columns |
+| Year Type, Year / multi-year list | Sidebar → Period |
+| Vehicle Category, Norms, Fuels, Vehicle Class checkboxes | Sidebar → Refine (multi-select dropdowns) |
+| Vehicle-group dropdown in the table header | Group picker next to the search box |
 | Excel export | CSV export |
 
 ## Userscript

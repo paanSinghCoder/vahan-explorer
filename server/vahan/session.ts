@@ -1,6 +1,6 @@
 // One JSF conversation with the Vahan report page: keeps cookies, the ViewState token
 // and the form values, and replays the same requests the page's own widgets send.
-import { decodeEntities, readAllSelects, readCheckboxes, readErrors, CHECK_GROUP_NAMES } from './html.ts';
+import { decodeEntities, readAllSelects, readCheckboxes, readErrors, CHECK_GROUP_NAMES } from './html.js';
 
 const ORIGIN = 'https://vahan.parivahan.gov.in';
 const PAGE = '/vahan4dashboard/vahan/view/reportview.xhtml';

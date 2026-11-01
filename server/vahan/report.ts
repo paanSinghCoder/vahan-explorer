@@ -1,8 +1,8 @@
 // High-level operations built on JsfSession: filter metadata, per-state options and reports.
-import type { CheckGroup, Meta, Option, ReportFilters, ReportResult, ReportRow, StateDetail } from '../../shared/types.ts';
-import { readCheckboxes, readCheckGroups, readSelect, readTable, type ParsedTable } from './html.ts';
-import { JsfSession, UpstreamError, ValidationError, type PartialResponse } from './session.ts';
-import { readFirstSheet } from './xlsx.ts';
+import type { CheckGroup, Meta, Option, ReportFilters, ReportResult, ReportRow, StateDetail } from '../../shared/types.js';
+import { readCheckboxes, readCheckGroups, readSelect, readTable, type ParsedTable } from './html.js';
+import { JsfSession, UpstreamError, ValidationError, type PartialResponse } from './session.js';
+import { readFirstSheet } from './xlsx.js';
 
 const MAIN_RENDER = 'VhCatg norms fuel VhClass combTablePnl groupingTable msg vhCatgPnl';
 const TABLE_GROUP = 'vchgroupTable:selectCatgGrp';

@@ -1,5 +1,5 @@
 // Small, targeted parsers for the markup PrimeFaces renders on the Vahan report page.
-import type { CheckGroup, HeaderCell, Option } from '../../shared/types.ts';
+import type { CheckGroup, HeaderCell, Option } from '../../shared/types.js';
 
 const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', '#39': "'" };
 

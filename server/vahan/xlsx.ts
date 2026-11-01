@@ -1,6 +1,6 @@
 // Minimal reader for the first worksheet of the Excel export (Apache POI output).
 import { strFromU8, unzipSync } from 'fflate';
-import { decodeEntities } from './html.ts';
+import { decodeEntities } from './html.js';
 
 function columnIndex(ref: string): number {
   let n = 0;
