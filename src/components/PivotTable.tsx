@@ -1,8 +1,8 @@
 import { ArrowDown, ArrowUp, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, ChevronsUpDown } from 'lucide-react';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { ReportResult, ReportRow } from '../../shared/types';
-import { formatInteger, formatValue } from '../lib/format';
-import { columnSums, resolveHeader, totalIndex, type Sort } from '../lib/table';
+import { formatInteger, formatShare, formatValue } from '../lib/format';
+import { columnSums, grandTotal, resolveHeader, rowTotal, totalIndex, type Sort, type SortKey } from '../lib/table';
 import { cn } from '../lib/utils';
 import type { Unit } from '../store';
 import { Button } from './ui/button';
@@ -25,14 +25,14 @@ interface Props {
 
 const PAGE_SIZES = [25, 50, 100, 250].map((n) => ({ value: String(n), label: String(n) }));
 
-function nextSort(current: Sort, column: number | 'label'): Sort {
+function nextSort(current: Sort, column: SortKey): Sort {
   const first = column === 'label' ? 'asc' : 'desc';
   if (current?.column !== column) return { column, dir: first };
   if (current.dir === first) return { column, dir: first === 'asc' ? 'desc' : 'asc' };
   return null;
 }
 
-function SortIcon({ sort, column }: { sort: Sort; column: number | 'label' }) {
+function SortIcon({ sort, column }: { sort: Sort; column: SortKey }) {
   if (sort?.column !== column) return <ChevronsUpDown className="size-3 opacity-0 transition-opacity group-hover:opacity-50" />;
   return sort.dir === 'asc' ? <ArrowUp className="size-3" /> : <ArrowDown className="size-3" />;
 }
@@ -46,6 +46,10 @@ export function PivotTable({ report, columns, rows, sort, onSort, unit, heatmap,
   const total = totalIndex(report);
   const columnMax = useMemo(() => report.columns.map((_, i) => Math.max(0, ...report.rows.map((r) => r.values[i] ?? 0))), [report]);
   const sums = useMemo(() => columnSums(rows, report.columns.length), [rows, report.columns.length]);
+  // Market share = row total / total of all rows for these filters (not just the matching rows).
+  const grand = useMemo(() => grandTotal(report), [report]);
+  const topTotal = useMemo(() => Math.max(0, ...report.rows.map((r) => rowTotal(r, total))), [report, total]);
+  const matchingTotal = useMemo(() => rows.reduce((a, r) => a + rowTotal(r, total), 0), [rows, total]);
 
   const pages = Math.max(1, Math.ceil(rows.length / pageSize));
   const current = Math.min(page, pages - 1);
@@ -115,6 +119,23 @@ export function PivotTable({ report, columns, rows, sort, onSort, unit, heatmap,
                   </th>
                 )}
                 {headerRow(level)}
+                {level === 0 && (
+                  <th
+                    rowSpan={depth}
+                    aria-sort={sort?.column === 'share' ? (sort.dir === 'asc' ? 'ascending' : 'descending') : undefined}
+                    className="border-b border-l bg-muted/40 p-0 align-bottom font-medium"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => onSort(nextSort(sort, 'share'))}
+                      title="Share of the total for these filters"
+                      className="group flex w-full items-center justify-end gap-1 px-3 py-2 text-right text-xs leading-tight whitespace-nowrap text-muted-foreground hover:text-foreground"
+                    >
+                      <SortIcon sort={sort} column="share" />
+                      Market share
+                    </button>
+                  </th>
+                )}
               </tr>
             ))}
           </thead>
@@ -142,19 +163,18 @@ export function PivotTable({ report, columns, rows, sort, onSort, unit, heatmap,
                         isTotal ? 'bg-muted/40 font-medium' : !value && 'text-muted-foreground/60',
                       )}
                     >
-                      {isTotal && columnMax[c] > 0 ? (
-                        <span className="flex items-center justify-end gap-2.5">
-                          <span className="hidden h-1 w-12 overflow-hidden rounded-full bg-border sm:block" aria-hidden>
-                            <span className="block h-full rounded-full bg-data" style={{ width: `${((value ?? 0) / columnMax[c]) * 100}%` }} />
-                          </span>
-                          {formatValue(value, unit)}
-                        </span>
-                      ) : (
-                        formatValue(value, unit)
-                      )}
+                      {formatValue(value, unit)}
                     </td>
                   );
                 })}
+                <td className="border-b border-l bg-muted/40 px-3 py-1.5 text-right whitespace-nowrap tabular group-hover/row:bg-muted">
+                  <span className="flex items-center justify-end gap-2.5">
+                    <span className="hidden h-1 w-12 overflow-hidden rounded-full bg-border sm:block" aria-hidden>
+                      <span className="block h-full rounded-full bg-data" style={{ width: `${topTotal ? (rowTotal(row, total) / topTotal) * 100 : 0}%` }} />
+                    </span>
+                    {formatShare(rowTotal(row, total), grand)}
+                  </span>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -170,6 +190,7 @@ export function PivotTable({ report, columns, rows, sort, onSort, unit, heatmap,
                     {formatValue(sums[c], unit)}
                   </td>
                 ))}
+                <td className="border-t border-l bg-muted px-3 py-2 text-right font-medium whitespace-nowrap tabular">{formatShare(matchingTotal, grand)}</td>
               </tr>
             </tfoot>
           )}

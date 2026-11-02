@@ -2,7 +2,7 @@ import { Check, Download, ExternalLink, Link2, Settings2, X } from 'lucide-react
 import { useMemo, useState } from 'react';
 import type { ReportResult, ReportRow } from '../../shared/types';
 import { downloadCsv, formatCompact, formatInteger, formatPercent, tidyTitle, UNITS } from '../lib/format';
-import { columnSums, filterAndSort, totalIndex, visibleColumns, type Sort } from '../lib/table';
+import { columnSums, filterAndSort, grandTotal, rowTotal, totalIndex, visibleColumns, type Sort } from '../lib/table';
 import { cn } from '../lib/utils';
 import { shareUrl, useFilters, type Unit } from '../store';
 import { PivotTable } from './PivotTable';
@@ -39,9 +39,8 @@ const COLUMN_HEADLINE: Record<string, string> = { 'Month Wise': 'Peak month', 'C
 
 function Stats({ report }: { report: ReportResult }) {
   const total = totalIndex(report);
-  const rowTotal = (r: ReportRow) => (total >= 0 ? (r.values[total] ?? 0) : r.values.reduce<number>((a, v) => a + (v ?? 0), 0));
-  const grand = report.rows.reduce((a, r) => a + rowTotal(r), 0);
-  const topRow = report.rows.reduce<ReportRow | null>((best, r) => (!best || rowTotal(r) > rowTotal(best) ? r : best), null);
+  const grand = grandTotal(report);
+  const topRow = report.rows.reduce<ReportRow | null>((best, r) => (!best || rowTotal(r, total) > rowTotal(best, total) ? r : best), null);
   const sums = columnSums(report.rows, report.columns.length);
   let topCol = -1;
   sums.forEach((s, i) => {
@@ -51,7 +50,7 @@ function Stats({ report }: { report: ReportResult }) {
 
   const stats = [
     { label: 'Total registrations', value: formatCompact(grand), note: formatInteger(grand) },
-    { label: `Top ${report.rowHeader.replace(/\bRto\b/, 'RTO')}`, value: topRow?.label ?? '–', note: topRow ? formatPercent(rowTotal(topRow), grand) : '' },
+    { label: `Top ${report.rowHeader.replace(/\bRto\b/, 'RTO')}`, value: topRow?.label ?? '–', note: topRow ? formatPercent(rowTotal(topRow, total), grand) : '' },
     { label: COLUMN_HEADLINE[group] ?? `Top ${group}`, value: topCol >= 0 ? report.columns[topCol] : '–', note: topCol >= 0 ? formatPercent(sums[topCol], grand) : '' },
   ];
   return (
@@ -116,8 +115,9 @@ export function ReportView({ report, fetching, onToggleSidebar }: Props) {
   const [copied, setCopied] = useState(false);
 
   const columns = useMemo(() => visibleColumns(report, hideEmpty), [report, hideEmpty]);
-  const safeSort = sort && sort.column !== 'label' && (sort.column < 0 || sort.column >= report.columns.length) ? null : sort;
-  const rows = useMemo(() => filterAndSort(report.rows, query, safeSort), [report.rows, query, safeSort]);
+  const total = totalIndex(report);
+  const safeSort = sort && typeof sort.column === 'number' && (sort.column < 0 || sort.column >= report.columns.length) ? null : sort;
+  const rows = useMemo(() => filterAndSort(report.rows, query, safeSort, total), [report.rows, query, safeSort, total]);
   const { main, detail } = describeTitle(report.title);
 
   const refinements = report.checkGroups
@@ -127,12 +127,14 @@ export function ReportView({ report, fetching, onToggleSidebar }: Props) {
       return { name: g.name, label: g.label, values: g.options.filter((o) => picked.has(o.value)).map((o) => o.label) };
     });
 
-  const exportCsv = () =>
+  const exportCsv = () => {
+    const grand = grandTotal(report);
     downloadCsv(
       `${tidyTitle(report.title).replace(/[^\w]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'vahan-report'}.csv`,
-      [report.rowHeader, ...columns.map((c) => report.columns[c])],
-      rows.map((r) => [r.label, ...columns.map((c) => r.values[c])]),
+      [report.rowHeader, ...columns.map((c) => report.columns[c]), 'Market share (%)'],
+      rows.map((r) => [r.label, ...columns.map((c) => r.values[c]), grand ? Number(((rowTotal(r, total) / grand) * 100).toFixed(2)) : null]),
     );
+  };
 
   const copyLink = async () => {
     if (!applied) return;

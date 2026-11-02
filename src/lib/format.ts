@@ -34,6 +34,19 @@ export function formatCompact(value: number): string {
 
 export const formatPercent = (part: number, whole: number) => (whole > 0 ? `${oneDecimal.format((part / whole) * 100)}%` : '–');
 
+const shareLarge = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const shareSmall = new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/** Market share: one decimal from 10%, two below, so small players stay distinguishable. */
+export function formatShare(part: number, whole: number): string {
+  if (whole <= 0) return '–';
+  const pct = (part / whole) * 100;
+  if (pct === 0) return '0%';
+  if (Math.abs(pct - 100) < 1e-9) return '100%';
+  if (pct < 0.01) return '<0.01%';
+  return `${(pct >= 10 ? shareLarge : shareSmall).format(pct)}%`;
+}
+
 export function downloadCsv(filename: string, header: string[], rows: (string | number | null)[][]) {
   const cell = (v: string | number | null) => {
     const s = v === null ? '' : String(v);

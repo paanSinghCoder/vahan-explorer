@@ -53,6 +53,7 @@ with your last report; **Copy link** puts the filters in the URL.
 | Vehicle Category, Norms, Fuels, Vehicle Class checkboxes | Sidebar → Refine (multi-select dropdowns) |
 | Vehicle-group dropdown in the table header | Group picker next to the search box |
 | Excel export | CSV export |
+| — | Market share column: each row's TOTAL ÷ the total of all rows for the current filters |
 
 ## Userscript
 

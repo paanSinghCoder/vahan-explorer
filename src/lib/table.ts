@@ -33,6 +33,16 @@ export function resolveHeader(rows: HeaderCell[][]): HeaderSlot[][] {
 
 export const totalIndex = (report: ReportResult) => report.columns.lastIndexOf('TOTAL');
 
+/** A row's TOTAL (or the sum of its values when the table has no TOTAL column). */
+export const rowTotal = (row: ReportRow, total: number) =>
+  total >= 0 ? (row.values[total] ?? 0) : row.values.reduce<number>((a, v) => a + (v ?? 0), 0);
+
+/** Sum of every row's total: the base for market share. */
+export const grandTotal = (report: ReportResult) => {
+  const total = totalIndex(report);
+  return report.rows.reduce((a, r) => a + rowTotal(r, total), 0);
+};
+
 /** Indexes of the value columns to show; optionally drops columns that are empty in every row. */
 export function visibleColumns(report: ReportResult, hideEmpty: boolean): number[] {
   const total = totalIndex(report);
@@ -41,14 +51,17 @@ export function visibleColumns(report: ReportResult, hideEmpty: boolean): number
     .filter((i) => !hideEmpty || i === total || report.rows.some((r) => (r.values[i] ?? 0) !== 0));
 }
 
-export type Sort = { column: number | 'label'; dir: 'asc' | 'desc' } | null;
+/** A value column index, the row label, or the computed market-share column. */
+export type SortKey = number | 'label' | 'share';
+export type Sort = { column: SortKey; dir: 'asc' | 'desc' } | null;
 
-export function filterAndSort(rows: ReportRow[], query: string, sort: Sort): ReportRow[] {
+export function filterAndSort(rows: ReportRow[], query: string, sort: Sort, total: number): ReportRow[] {
   const q = query.trim().toLowerCase();
   const out = q ? rows.filter((r) => r.label.toLowerCase().includes(q)) : [...rows];
   if (!sort) return out;
   const dir = sort.dir === 'asc' ? 1 : -1;
   if (sort.column === 'label') return out.sort((a, b) => a.label.localeCompare(b.label) * dir);
+  if (sort.column === 'share') return out.sort((a, b) => (rowTotal(a, total) - rowTotal(b, total)) * dir);
   const c = sort.column;
   return out.sort((a, b) => ((a.values[c] ?? 0) - (b.values[c] ?? 0)) * dir);
 }
