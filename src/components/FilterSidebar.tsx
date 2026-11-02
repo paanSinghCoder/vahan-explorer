@@ -6,7 +6,7 @@ import {
   ALL,
   axisLabel,
   isMultiYear,
-  monthApplies,
+  monthUnavailableReason,
   monthOptions,
   multiYearOptions,
   normalise,
@@ -46,6 +46,26 @@ function Group({ label, children }: { label: string; children: ReactNode }) {
       <p className="text-xs font-medium text-muted-foreground/80">{label}</p>
       {children}
     </div>
+  );
+}
+
+/** Always shown so it's easy to find; disabled, with the reason, when VAHAN offers no month. */
+function MonthField({ months }: { months: Option[] }) {
+  const { draft, setDraft } = useFilters();
+  if (!draft) return null;
+  const reason = monthUnavailableReason(draft);
+  return (
+    <Field label="Month" htmlFor="filter-month">
+      <Combobox
+        id="filter-month"
+        options={reason ? [{ value: '', label: 'All months' }] : monthOptions(months, draft)}
+        value={reason ? '' : draft.month}
+        searchable={false}
+        disabled={!!reason}
+        onChange={(month) => setDraft({ month })}
+      />
+      {reason && <p className="text-[11px] leading-snug text-muted-foreground">{reason}</p>}
+    </Field>
   );
 }
 
@@ -152,13 +172,9 @@ export function FilterSidebar({ meta, checkGroups, months, running }: Props) {
               <Field label="Year" htmlFor="filter-year">
                 <Combobox id="filter-year" options={yearOptions(meta, draft)} value={draft.year} format={yearLabel} onChange={(year) => setDraft({ year, month: '' })} />
               </Field>
-              {monthApplies(draft) && (
-                <Field label="Month" htmlFor="filter-month">
-                  <Combobox id="filter-month" options={monthOptions(months, draft)} value={draft.month} searchable={false} onChange={(month) => setDraft({ month })} />
-                </Field>
-              )}
             </>
           )}
+          <MonthField months={months} />
         </Group>
 
         <Group label="Refine">

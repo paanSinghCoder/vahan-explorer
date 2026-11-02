@@ -9,9 +9,20 @@ const MULTI_YEAR_AXES = ['Financial Year', 'Calendar Year'];
 
 export const isMultiYear = (xAxis: string) => MULTI_YEAR_AXES.includes(xAxis);
 
-/** The page offers a month only for one calendar year, in the regular (non-VCG, non-monthly) table. */
-export const monthApplies = (f: ReportFilters) =>
-  f.yearType === 'C' && f.year !== 'A' && !isMultiYear(f.xAxis) && f.xAxis !== VCG && f.xAxis !== MONTH_WISE;
+/**
+ * Why the month can't be picked for these filters, or null when it can. VAHAN offers a month
+ * only for one calendar year, in the regular (non-VCG, non-monthly) table.
+ */
+export function monthUnavailableReason(f: ReportFilters): string | null {
+  if (isMultiYear(f.xAxis)) return 'Not available while the columns compare years.';
+  if (f.xAxis === MONTH_WISE) return 'The columns already show each month.';
+  if (f.xAxis === VCG) return 'Not available with Vehicle Category Group columns. Pick other Columns to choose a month.';
+  if (f.yearType !== 'C') return 'Switch the year type to Calendar to choose a month.';
+  if (f.year === 'A') return 'Pick a specific year to choose a month.';
+  return null;
+}
+
+export const monthApplies = (f: ReportFilters) => monthUnavailableReason(f) === null;
 
 export function yAxisOptions(meta: Meta, detail: StateDetail | undefined, f: ReportFilters): Option[] {
   const base = meta.yAxis.filter((o) => o.value !== 'State');
